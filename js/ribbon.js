@@ -71,13 +71,6 @@ function OnAction(control) {
                 window.Application.ribbonUI.InvalidateControl("btnApiEvent") 
             }
             break
-        case "btnWebNotify":
-            {
-                let currentTime = new Date()
-                let timeStr = currentTime.getHours() + ':' + currentTime.getMinutes() + ":" + currentTime.getSeconds()
-                window.Application.OAAssist.WebNotify("这行内容由wps加载项主动送达给业务系统，可以任意自定义, 比如时间值:" + timeStr + "，次数：" + (++WebNotifycount), true)
-            }
-            break
         default:
             // 新增AI按钮处理
             if (eleId === "btnAIRewrite") {
@@ -128,7 +121,7 @@ async function handleAIAction(type) {
         range.Text = ""; // 先清空选区
         // 打字机效果插入
         for (let i = 0; i < aiResult.length; i++) {
-            await new Promise(resolve => setTimeout(resolve, 500)); // 100ms/字
+            await new Promise(resolve => setTimeout(resolve, 400)); // 100ms/字
             range.Text += aiResult[i];
             range.Start = range.Start + 1;
             range.End = range.Start;

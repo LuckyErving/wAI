@@ -11,7 +11,7 @@
 
                     <button id="btnApiEvent" getLabel="OnGetLabel" onAction="OnAction" getEnabled="OnGetEnabled"  getImage="GetImage" getVisible="OnGetVisible" size="large"/>
 
-                    <button id="btnWebNotify" label="给业务系统发通知" onAction="OnAction" enabled="true"  getImage="GetImage" getVisible="OnGetVisible" size="large"/>
+                    <!-- <button id="btnWebNotify" label="给业务系统发通知" onAction="OnAction" enabled="true"  getImage="GetImage" getVisible="OnGetVisible" size="large"/> -->
 
                     <!-- 新增AI按钮 -->
                     <button id="btnAIRewrite" label="AI续写润色" onAction="OnAction" getImage="GetImage" size="large"/>
