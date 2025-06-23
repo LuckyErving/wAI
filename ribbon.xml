@@ -17,6 +17,8 @@
                     <button id="btnAIRewrite" label="AI续写润色" onAction="OnAction" getImage="GetImage" size="large"/>
 
                     <button id="btnAISummary" label="AI总结提炼" onAction="OnAction" getImage="GetImage" size="large"/>
+                    <!-- 撤回AI插入内容按钮 -->
+                    <button id="btnWithdrawAI" label="撤回AI插入" onAction="OnAction" getImage="GetImage" size="large"/>
 				</group>
             </tab>
         </tabs>

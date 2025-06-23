@@ -84,11 +84,17 @@ function OnAction(control) {
                 handleAIAction("rewrite");
             } else if (eleId === "btnAISummary") {
                 handleAIAction("summary");
+            } else if (eleId === "btnWithdrawAI") {
+                withdrawLastAIInsert();
             }
             break;
     }
     return true;
 }
+
+// 用于记录上次AI插入的起止位置和原内容
+let lastAIInsert = { start: null, end: null, originalText: null };
+let aiInsertInProgress = false; // 标记AI插入是否进行中
 
 // AI处理函数
 async function handleAIAction(type) {
@@ -105,19 +111,73 @@ async function handleAIAction(type) {
     let selectedText = sel.Range.Text;
     let prompt = "";
     if (type === "rewrite") {
-        prompt = `请对以下内容进行续写和润色：${selectedText}`;
+        prompt = `请对以下内容进行续写和润色，只返回润色后的正文内容，不要输出任何解释或格式说明：${selectedText}`;
     } else if (type === "summary") {
-        prompt = `请对以下内容进行总结提炼：${selectedText}`;
+        prompt = `请对以下内容进行总结提炼，只返回总结后的正文内容，不要输出任何解释或格式说明：${selectedText}`;
     }
     // 调用AI接口
     try {
+        aiInsertInProgress = true;
+        updateWithdrawAIButton();
         const aiResult = await callAIAPI(prompt);
-        // 插入AI结果到光标处
-        sel.Range.Text = aiResult;
-        alert("AI处理完成，结果已插入文档");
+        let range = sel.Range;
+        // 记录插入前的起点和原内容
+        let insertStart = range.Start;
+        let insertEnd = range.End;
+        let originalText = range.Text;
+        range.Text = ""; // 先清空选区
+        // 打字机效果插入
+        for (let i = 0; i < aiResult.length; i++) {
+            await new Promise(resolve => setTimeout(resolve, 500)); // 100ms/字
+            range.Text += aiResult[i];
+            range.Start = range.Start + 1;
+            range.End = range.Start;
+            range.Font.Color = 255; // 红色
+        }
+        // 插入一个回车，防止与后文接触
+        range.Text += "\r";
+        range.Start = range.Start + 1;
+        range.End = range.Start;
+        // 记录插入的起止位置和原内容
+        lastAIInsert.start = insertStart;
+        lastAIInsert.end = insertStart + aiResult.length + 1; // +1 for the new line
+        lastAIInsert.originalText = originalText;
     } catch (e) {
         alert("AI接口调用失败：" + e.message);
+    } finally {
+        aiInsertInProgress = false;
+        updateWithdrawAIButton();
     }
+}
+
+// 控制撤回按钮可用性
+function updateWithdrawAIButton() {
+    if (window.Application && window.Application.ribbonUI) {
+        window.Application.ribbonUI.InvalidateControl("btnWithdrawAI");
+    }
+}
+
+// 撤回上次AI插入内容并恢复原内容
+function withdrawLastAIInsert() {
+    const doc = window.Application.ActiveDocument;
+    if (!doc) {
+        alert("当前没有打开任何文档");
+        return;
+    }
+    if (lastAIInsert.start === null || lastAIInsert.end === null) {
+        alert("没有可撤回的AI插入内容");
+        return;
+    }
+    let range = doc.Range(lastAIInsert.start, lastAIInsert.end);
+    range.Text = lastAIInsert.originalText || "";
+    // 恢复选中原文字
+    let sel = window.Application.Selection;
+    sel.SetRange(lastAIInsert.start, lastAIInsert.start + (lastAIInsert.originalText ? lastAIInsert.originalText.length : 0));
+    // 撤回后清空记录
+    lastAIInsert.start = null;
+    lastAIInsert.end = null;
+    lastAIInsert.originalText = null;
+    //alert("已撤回上次AI插入内容，并恢复原文字");
 }
 
 // 示例AI接口调用（需替换为你自己的API KEY和接口地址）
@@ -162,19 +222,18 @@ function OnGetEnabled(control) {
     switch (eleId) {
         case "btnShowMsg":
             return true
-            break
         case "btnShowDialog":
             {
                 let bFlag = window.Application.PluginStorage.getItem("EnableFlag")
                 return bFlag
-                break
             }
         case "btnShowTaskPane":
             {
                 let bFlag = window.Application.PluginStorage.getItem("EnableFlag")
                 return bFlag
-                break
             }
+        case "btnWithdrawAI":
+            return !aiInsertInProgress && lastAIInsert.start !== null && lastAIInsert.end !== null;
         default:
             break
     }
@@ -192,13 +251,11 @@ function OnGetLabel(control){
         {
             let bFlag = window.Application.PluginStorage.getItem("EnableFlag")
             return bFlag ?  "按钮Disable" : "按钮Enable"
-            break
         }
         case "btnApiEvent":
         {
             let bFlag = window.Application.PluginStorage.getItem("ApiEventFlag")
             return bFlag ? "清除新建文件事件" : "注册新建文件事件"
-            break
         }    
     }
     return ""
