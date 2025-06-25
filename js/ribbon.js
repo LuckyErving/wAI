@@ -85,8 +85,8 @@ function OnAction(control) {
     return true;
 }
 
-// 用于记录上次AI插入的起止位置和原内容
-let lastAIInsert = { start: null, end: null, originalText: null };
+// 用于记录上次AI插入的起止位置、原内容和原字体颜色
+let lastAIInsert = { start: null, end: null, originalText: null, originalColor: null };
 let aiInsertInProgress = false; // 标记AI插入是否进行中
 
 // AI处理函数
@@ -114,14 +114,17 @@ async function handleAIAction(type) {
         updateWithdrawAIButton();
         const aiResult = await callAIAPI(prompt);
         let range = sel.Range;
-        // 记录插入前的起点和原内容
+        // 记录插入前的起点、原内容和原颜色
         let insertStart = range.Start;
-        let insertEnd = range.End;
         let originalText = range.Text;
+        let originalColor = null;
+        if (range.Font && typeof range.Font.Color !== 'undefined') {
+            originalColor = range.Font.Color;
+        }
         range.Text = ""; // 先清空选区
         // 打字机效果插入
         for (let i = 0; i < aiResult.length; i++) {
-            await new Promise(resolve => setTimeout(resolve, 400)); // 100ms/字
+            await new Promise(resolve => setTimeout(resolve, 100)); // 100ms/字
             range.Text += aiResult[i];
             range.Start = range.Start + 1;
             range.End = range.Start;
@@ -135,6 +138,7 @@ async function handleAIAction(type) {
         lastAIInsert.start = insertStart;
         lastAIInsert.end = insertStart + aiResult.length + 1; // +1 for the new line
         lastAIInsert.originalText = originalText;
+        lastAIInsert.originalColor = originalColor;
     } catch (e) {
         alert("AI接口调用失败：" + e.message);
     } finally {
@@ -163,6 +167,10 @@ function withdrawLastAIInsert() {
     }
     let range = doc.Range(lastAIInsert.start, lastAIInsert.end);
     range.Text = lastAIInsert.originalText || "";
+    // 恢复字体颜色
+    if (lastAIInsert.originalColor !== null) {
+        range.Font.Color = lastAIInsert.originalColor;
+    }
     // 恢复选中原文字
     let sel = window.Application.Selection;
     sel.SetRange(lastAIInsert.start, lastAIInsert.start + (lastAIInsert.originalText ? lastAIInsert.originalText.length : 0));
@@ -170,6 +178,7 @@ function withdrawLastAIInsert() {
     lastAIInsert.start = null;
     lastAIInsert.end = null;
     lastAIInsert.originalText = null;
+    lastAIInsert.originalColor = null;
     //alert("已撤回上次AI插入内容，并恢复原文字");
 }
 

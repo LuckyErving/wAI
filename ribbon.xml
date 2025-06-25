@@ -3,7 +3,7 @@
         <tabs>
             <tab id="wpsAddinTab" label="OffAI">
 				<group id="btnDemoGroup" label="group1">
-                    <button id="btnShowMsg" label="弹出消息框" onAction="OnAction" getEnabled="OnGetEnabled"  getImage="GetImage" visible="true" size="large"/>
+                    <!-- <button id="btnShowMsg" label="弹出消息框" onAction="OnAction" getEnabled="OnGetEnabled"  getImage="GetImage" visible="true" size="large"/> -->
 
                     <button id="btnIsEnbable" getLabel="OnGetLabel" onAction="OnAction" enabled="true"  getImage="GetImage" visible="true" size="large"/>
                     <button id="btnShowDialog" label="弹对话框网页" onAction="OnAction" getEnabled="OnGetEnabled"  getImage="GetImage" getVisible="OnGetVisible" size="large"/>
