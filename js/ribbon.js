@@ -17,16 +17,6 @@ var WebNotifycount = 0;
 function OnAction(control) {
     const eleId = control.Id
     switch (eleId) {
-        case "btnShowMsg":
-            {
-                const doc = window.Application.ActiveDocument
-                if (!doc) {
-                    alert("当前没有打开任何文档")
-                    return
-                }
-                alert(doc.Name)
-            }
-            break;
         case "btnIsEnbable":
             {
                 let bFlag = window.Application.PluginStorage.getItem("EnableFlag")
@@ -79,6 +69,16 @@ function OnAction(control) {
                 handleAIAction("summary");
             } else if (eleId === "btnWithdrawAI") {
                 withdrawLastAIInsert();
+            } else if (eleId === "btnAIChat") {
+                let chatPaneId = window.Application.PluginStorage.getItem("chatpane_id");
+                if (!chatPaneId) {
+                    let pane = window.Application.CreateTaskPane(GetUrlPath() + "/ui/chatpane.html");
+                    window.Application.PluginStorage.setItem("chatpane_id", pane.ID);
+                    pane.Visible = true;
+                } else {
+                    let pane = window.Application.GetTaskPane(chatPaneId);
+                    pane.Visible = !pane.Visible;
+                }
             }
             break;
     }
@@ -207,8 +207,6 @@ async function callAIAPI(prompt) {
 function GetImage(control) {
     const eleId = control.Id
     switch (eleId) {
-        case "btnShowMsg":
-            return "images/1.svg"
         case "btnShowDialog":
             return "images/2.svg"
         case "btnShowTaskPane":
@@ -222,8 +220,6 @@ function GetImage(control) {
 function OnGetEnabled(control) {
     const eleId = control.Id
     switch (eleId) {
-        case "btnShowMsg":
-            return true
         case "btnShowDialog":
             {
                 let bFlag = window.Application.PluginStorage.getItem("EnableFlag")
